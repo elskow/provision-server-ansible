@@ -1,0 +1,30 @@
+- name: Ensure new user name is defined
+  fail:
+    msg: "The variable 'NEW_USER_NAME' is not defined."
+  when: new_user_name is undefined
+
+- name: Ensure new user password is defined
+  fail:
+    msg: "The variable 'NEW_USER_PASSWORD' is not defined."
+  when: new_user_password is undefined
+
+- name: Add user
+  user:
+    shell: "/bin/bash"
+    name: "{{ new_user_name }}"
+    password: "{{ new_user_password | password_hash('sha512') }}"
+    state: present
+
+- name: Add SSH key for the new user
+  when: new_user_ssh_key is defined
+  authorized_key:
+    key: "{{ lookup('file', new_user_ssh_key) }}"
+    user: "{{ new_user_name }}"
+    state: present
+
+- name: Add user to sudoers
+  copy:
+    content: '{{ new_user_name }} ALL=(ALL) NOPASSWD:ALL'
+    dest: "/etc/sudoers.d/{{ new_user_name }}"
+    mode: '0440'
+    validate: 'visudo -cf %s'

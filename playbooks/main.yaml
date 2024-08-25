@@ -1,0 +1,11 @@
+- name: Host initial setup
+  hosts: all
+  become: true
+  gather_facts: true
+  vars_files:
+    - ../env/vars.yaml
+  roles:
+    - role: common
+    - role: docker
+    - role: user_management
+    - role: ssh

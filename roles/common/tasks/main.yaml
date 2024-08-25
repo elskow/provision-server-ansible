@@ -1,0 +1,35 @@
+- name: Install common packages
+  apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - chrony
+      - rsync
+      - net-tools
+      - iotop
+      - sysstat
+      - python3-psycopg2
+    state: present
+    update_cache: true
+
+- name: Enable chrony
+  service:
+    name: chrony
+    enabled: true
+    state: started
+
+- name: Force ntp sync
+  command: "chronyc -a makestep"
+  when: ansible_facts['chrony_installed'] is defined and ansible_facts['chrony_installed']
+
+- name: Disable swap partition
+  command: "swapoff -a"
+  when: ansible_swaptotal_mb > 0
+
+- name: Disable swap partition permanently
+  lineinfile:
+    path: /etc/fstab
+    regexp: '.*swap\s+sw\s+.*'
+    state: absent
